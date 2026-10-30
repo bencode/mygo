@@ -100,8 +100,9 @@ func (v *view) layout(r ui.Rect, scale float32) {
 		v.shaped.clear()
 		v.lines = v.lines[:0]
 	}
-	// The text system lets go of its fonts as they pile up with sizes, and
-	// glyphs shaped with them must not be drawn: shape the rows anew.
+	// The glyphs shaped before the text system let go of its fonts, as it
+	// does once they pile up with sizes, or took other ones must not be
+	// drawn: shape the rows anew.
 	if gen := text.Shared().Generation(); gen != v.textGen {
 		v.textGen = gen
 		v.shaped.clear()
