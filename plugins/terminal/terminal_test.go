@@ -17,6 +17,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/egoist/mygo/internal/text"
 	"github.com/egoist/mygo/plugins/terminal/internal/vt"
 	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
@@ -1329,6 +1330,33 @@ func TestFont(t *testing.T) {
 	}
 	if f := (&Font{Weight: 800}).key(1).variant(3); f.Weight != 900 || !f.Italic {
 		t.Errorf("the bold italic of weight 800 is %+v", f)
+	}
+}
+
+// The rows shown before the text system lets go of its fonts, as it does
+// once they pile up with sizes, show the same after, shaped anew: the
+// glyphs of the fonts it let go of are not drawn.
+func TestRowsAfterFontsLetGo(t *testing.T) {
+	loadLib(t)
+	term, err := New(Options{Conn: newPipe()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer term.Close()
+	tt := ui.NewTester(func(c *ui.Context) { View(c, term).Fill() }, 400, 200)
+	term.Feed([]byte("hello"))
+	tt.Frame()
+	before := slices.Clone(tt.Image().Pix)
+	for gen, size := text.Shared().Generation(), float32(6); text.Shared().Generation() == gen; {
+		for range 64 {
+			size += 1.0 / 64
+			ui.Shape("x", ui.Font{Family: "monospace", Size: size})
+		}
+		tt.Frame()
+	}
+	tt.Frame()
+	if !bytes.Equal(before, tt.Image().Pix) {
+		t.Error("the rows changed once the text system let go of its fonts")
 	}
 }
 

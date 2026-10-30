@@ -5,6 +5,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/egoist/mygo/internal/text"
 	"github.com/egoist/mygo/plugins/terminal/internal/vt"
 	"github.com/egoist/mygo/ui"
 )
@@ -96,6 +97,14 @@ func (v *view) layout(r ui.Rect, scale float32) {
 		v.cellW = max(int(math.Ceil(float64(adv*scale-0.05))), 1)
 		v.cellH = max(int(math.Ceil(float64((m.Ascent+m.Descent+m.LineGap)*fk.lineHeight*scale-0.05))), 1)
 		v.baseline = int(math.Round(float64((float32(v.cellH)-(m.Ascent+m.Descent)*scale)/2 + m.Ascent*scale)))
+		v.shaped.clear()
+		v.lines = v.lines[:0]
+	}
+	// The glyphs shaped before the text system let go of its fonts, as it
+	// does once they pile up with sizes, or took other ones must not be
+	// drawn: shape the rows anew.
+	if gen := text.Shared().Generation(); gen != v.textGen {
+		v.textGen = gen
 		v.shaped.clear()
 		v.lines = v.lines[:0]
 	}

@@ -155,6 +155,7 @@ type view struct {
 	size                   [2]float32
 	font                   fontKey
 	fonts                  [4]ui.Font
+	textGen                uint64 // the text system's generation, as the rows were shaped
 	scale                  float32
 	cellW, cellH, baseline int
 	ox, oy                 int
